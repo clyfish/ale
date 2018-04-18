@@ -28,6 +28,7 @@ let s:LSP_COMPLETION_REFERENCE_KIND = 18
 " the insert cursor is. If one of these matches, we'll check for completions.
 let s:should_complete_map = {
 \   '<default>': '\v[a-zA-Z$_][a-zA-Z$_0-9]*$|\.$',
+\   'rust': '\v[a-zA-Z$_][a-zA-Z$_0-9]*$|\.$|::$',
 \}
 
 " Regular expressions for finding the start column to replace with completion.
@@ -38,6 +39,7 @@ let s:omni_start_map = {
 " A map of exact characters for triggering LSP completions.
 let s:trigger_character_map = {
 \   '<default>': ['.'],
+\   'rust': ['.', '::'],
 \}
 
 function! s:GetFiletypeValue(map, filetype) abort
@@ -248,7 +250,7 @@ function! ale#completion#ParseLSPCompletions(response) abort
         \   'kind': l:kind,
         \   'icase': 1,
         \   'menu': l:item.detail,
-        \   'info': l:item.documentation,
+        \   'info': get(l:item, 'documentation', ''),
         \})
     endfor
 
@@ -378,10 +380,7 @@ function! ale#completion#GetCompletions() abort
 
     for l:linter in ale#linter#Get(&filetype)
         if !empty(l:linter.lsp)
-            if l:linter.lsp is# 'tsserver'
-            \|| get(g:, 'ale_completion_experimental_lsp_support', 0)
-                call s:GetLSPCompletions(l:linter)
-            endif
+            call s:GetLSPCompletions(l:linter)
         endif
     endfor
 endfunction
