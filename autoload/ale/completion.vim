@@ -296,7 +296,7 @@ function! ale#completion#ParseLSPCompletions(response) abort
         \})
     endfor
 
-    return l:results
+    return ale#completion#Filter(l:buffer, l:results, l:info.prefix)
 endfunction
 
 function! ale#completion#HandleTSServerResponse(conn_id, response) abort
