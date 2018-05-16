@@ -56,6 +56,11 @@ let s:global_variable_list = [
 \    'ale_warn_about_trailing_whitespace',
 \]
 
+" A simple map from linter names to error messages for LSPs.
+if !exists('s:lsp_error_messages')
+    let s:lsp_error_messages = {}
+endif
+
 function! s:Echo(message) abort
     execute 'echo a:message'
 endfunction
@@ -168,6 +173,37 @@ function! s:EchoLinterAliases(all_linters) abort
     endfor
 endfunction
 
+function! s:EchoLSPErrorMessages(all_linter_names) abort
+    let l:header_echoed = 0
+
+    for l:linter_name in a:all_linter_names
+        let l:error_list = get(s:lsp_error_messages, l:linter_name, [])
+
+        if !empty(l:error_list)
+            if !l:header_echoed
+                call s:Echo(' LSP Error Messages:')
+                call s:Echo('')
+            endif
+
+            call s:Echo('(Errors for ' . l:linter_name . ')')
+
+            for l:message in l:error_list
+                for l:line in split(l:message, "\n")
+                    call s:Echo(l:line)
+                endfor
+            endfor
+        endif
+    endfor
+endfunction
+
+function! ale#debugging#AddLSPErrorMessage(linter_name, message) abort
+    if !has_key(s:lsp_error_messages, a:linter_name)
+        let s:lsp_error_messages[a:linter_name] = []
+    endif
+
+    call add(s:lsp_error_messages[a:linter_name], a:message)
+endfunction
+
 function! ale#debugging#Info() abort
     let l:filetype = &filetype
 
@@ -200,6 +236,7 @@ function! ale#debugging#Info() abort
     call s:Echo(' Global Variables:')
     call s:Echo('')
     call s:EchoGlobalVariables()
+    call s:EchoLSPErrorMessages(l:all_names)
     call s:Echo('  Command History:')
     call s:Echo('')
     call s:EchoCommandHistory()

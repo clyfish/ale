@@ -282,8 +282,19 @@ function! ale#engine#HandleLSPResponse(conn_id, response) abort
     let l:method = get(a:response, 'method', '')
 
     if get(a:response, 'jsonrpc', '') is# '2.0' && has_key(a:response, 'error')
-        " Uncomment this line to print LSP error messages.
-        " call s:HandleLSPErrorMessage(a:response.error.message)
+        if !g:ale_history_enabled || !g:ale_history_log_output
+            return
+        endif
+
+        let l:linter_name = get(s:lsp_linter_map, a:conn_id, '')
+
+        if !empty(l:linter_name)
+            let l:message = ale#lsp#response#GetErrorMessage(a:response)
+
+            if !empty(l:message)
+                call ale#debugging#AddLSPErrorMessage(l:linter_name, l:message)
+            endif
+        endif
     elseif l:method is# 'textDocument/publishDiagnostics'
         call s:HandleLSPDiagnostics(a:conn_id, a:response)
     elseif get(a:response, 'type', '') is# 'event'
