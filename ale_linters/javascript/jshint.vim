@@ -19,7 +19,7 @@ function! ale_linters#javascript#jshint#GetCommand(buffer) abort
     \)
 
     let l:command = ale#Escape(ale_linters#javascript#jshint#GetExecutable(a:buffer))
-    let l:command .= ' --reporter unix --extract auto'
+    let l:command .= ' --reporter unix --extract auto --verbose'
 
     if !empty(l:jshint_config)
         let l:command .= ' --config ' . ale#Escape(l:jshint_config)
